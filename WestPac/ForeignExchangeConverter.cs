@@ -17,7 +17,7 @@ namespace WestPacForeignExchange
         [SetUp]
         public void SetupDriver() {
             TestContext.WriteLine("set up the driver");
-            driver = new ChromeDriver("C:\\automation\\chrome");
+            driver = new ChromeDriver("C:\\Users\\jimmy\\source\\repos\\WestPac\\WestPac\\bin\\Debug\\");
             driver.Navigate().GoToUrl("https://www.westpac.co.nz");
             driver.Manage().Window.Maximize();
         }
