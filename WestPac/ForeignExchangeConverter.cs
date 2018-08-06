@@ -192,9 +192,9 @@ namespace WestPacForeignExchange
                 outElement = driver.FindElement(by); 
             }
             catch (NoSuchElementException) {
-                TestContext.WriteLine("The Element not found");
+                TestContext.WriteLine(by.ToString() +" element not found");
                 outElement = null;
-                return false;
+                Assert.Fail(by.ToString() + " element not found");
             }
             return true;
         } 
