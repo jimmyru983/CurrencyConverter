@@ -185,7 +185,8 @@ namespace WestPacForeignExchange
         }
 
 
-        // search for element in the page, return true if found or false for not found
+        // search for element in the page, return true if found
+        // failed the test if not found and print the element to test output
         public bool IsElementFound (By by, out IWebElement outElement){
             try
             {
