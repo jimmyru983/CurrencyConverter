@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -11,25 +13,29 @@ using System.Text;
 
 namespace WestPacForeignExchange
 {
-    class CurrencyConverter
+
+     [TestFixture(typeof(FirefoxDriver))]
+     [TestFixture(typeof(ChromeDriver))]
+    class CurrencyConverter<TWebDriver> where TWebDriver : IWebDriver, new()
     {
         IWebDriver driver;
         [SetUp]
-        public void SetupDriver() {
+        public void SetupDriver()
+        {
             TestContext.WriteLine("set up the driver");
-            driver = new ChromeDriver("C:\\Users\\jimmy\\source\\repos\\WestPac\\WestPac\\bin\\Debug\\");
+            driver = new TWebDriver();
             driver.Navigate().GoToUrl("https://www.westpac.co.nz");
             driver.Manage().Window.Maximize();
         }
 
-        //validates the message "Please enter the amount you want to convert" is displayed 
+        //validates the message "Please enter the amount you want to convert" is displayed
         //when the Convert button is clicked without entering a value in the amount input box
         [Test]
         public void Story1NoAmountEntered()
         {
             IWebElement westpacFrame;
             TestContext.WriteLine("No amount entered, convert button is clicked");
-            NavigateToCurrencyConverter(); 
+            NavigateToCurrencyConverter();
             westpacFrame = driver.FindElement(By.Id("westpac-iframe"));
             //switch to the westpac-iframe
             driver.SwitchTo().Frame(westpacFrame);
@@ -37,12 +43,14 @@ namespace WestPacForeignExchange
             {
                 ConvertButton.Click();
                 String ExpectedText = "Please enter the amount you want to convert.";
-                String ActualText = driver.FindElement(By.Id("errordiv")).Text;
+                String ActualText = "";
+                if (IsElementFound(By.Id("errordiv"), out IWebElement ErrorText))
+                    ActualText = ErrorText.Text;
                 TestContext.WriteLine("ActualText is " + ActualText);
                 Assert.AreEqual(ExpectedText, ActualText, "failed to find " + ExpectedText);
             }
         }
-            
+
         [Test]
         // User is able to convert 1 NZD to USD successfully
         public void Story2ConvertNZD2USD()
@@ -53,15 +61,18 @@ namespace WestPacForeignExchange
             westpacFrame = driver.FindElement(By.Id("westpac-iframe"));
             //switch to the westpac-iframe
             driver.SwitchTo().Frame(westpacFrame);
-            driver.FindElement(By.Id("ConvertFrom"))
-                  .FindElement(By.XPath("//select[1]/option[1]")).Click();
-            driver.FindElement(By.Id("ConvertTo"))
-                              .FindElement(By.XPath("//select[2]/option[2]")).Click();
-            driver.FindElement(By.Name("Amount")).SendKeys("1");
+            if (IsElementFound(By.Id("ConvertFrom"), out IWebElement ConvertFromDropDown))
+                ConvertFromDropDown.FindElement(By.XPath("//select[1]/option[1]")).Click();
+            if (IsElementFound(By.Id("ConvertTo"), out IWebElement ConvertToDropDown))
+                ConvertToDropDown.FindElement(By.XPath("//select[2]/option[2]")).Click();
+            if (IsElementFound(By.Id("Amount"), out IWebElement AmountInput))
+                AmountInput.SendKeys("1");
             if (IsElementFound(By.Id("convert"), out IWebElement ConvertButton))
             {
                 ConvertButton.Click();
-                String ActualText = driver.FindElement(By.Id("resultsdiv")).Text;
+                String ActualText = "";
+                if (IsElementFound(By.Id("resultsdiv"), out IWebElement ResultText))
+                    ActualText = ResultText.Text;
                 TestContext.WriteLine("ActualText is " + ActualText);
                 String FailedMessage = "failed to convert NZD to USD";
                 Assert.IsTrue(ActualText.Contains("1 New Zealand Dollar"), FailedMessage);
@@ -71,7 +82,7 @@ namespace WestPacForeignExchange
         }
 
         [Test]
-        // User is able to convert 1 USD to NZD successfully 
+        // User is able to convert 1 USD to NZD successfully
         public void Story2ConvertUSDtoNZD()
         {
             IWebElement westpacFrame;
@@ -80,16 +91,18 @@ namespace WestPacForeignExchange
             westpacFrame = driver.FindElement(By.Id("westpac-iframe"));
             //switch to the westpac-iframe
             driver.SwitchTo().Frame(westpacFrame);
-            driver.FindElement(By.Id("ConvertFrom"))
-                  .FindElement(By.XPath("//select[1]/option[2]")).Click();
-            driver.FindElement(By.Id("ConvertTo"))
-                              .FindElement(By.XPath("//select[2]/option[1]")).Click();
-            driver.FindElement(By.Name("Amount")).SendKeys("1");
+            if (IsElementFound(By.Id("ConvertFrom"), out IWebElement ConvertFromDropDown))
+                ConvertFromDropDown.FindElement(By.XPath("//select[1]/option[2]")).Click();
+            if (IsElementFound(By.Id("ConvertTo"), out IWebElement ConvertToDropDown))
+                ConvertToDropDown.FindElement(By.XPath("//select[2]/option[1]")).Click();
+            if (IsElementFound(By.Id("Amount"), out IWebElement AmountInput))
+                AmountInput.SendKeys("1");
             if (IsElementFound(By.Id("convert"), out IWebElement ConvertButton))
             {
                 ConvertButton.Click();
-                String ActualText = driver.FindElement(By.Id("resultsdiv")).Text;
-                TestContext.WriteLine("ActualText is " + ActualText);
+                String ActualText = "";
+                if (IsElementFound(By.Id("resultsdiv"), out IWebElement ResultText))
+                    ActualText = ResultText.Text;
                 String FailedMessage = "failed to convert USD to NZD";
                 Assert.IsTrue(ActualText.Contains("1 United States Dollar"), FailedMessage);
                 Assert.IsTrue(ActualText.Contains("New Zealand Dollar"), FailedMessage);
@@ -99,7 +112,7 @@ namespace WestPacForeignExchange
         }
 
         [Test]
-        // User is able to convert 1 Pound Sterling to NZD successfully 
+        // User is able to convert 1 Pound Sterling to NZD successfully
         public void Story2ConvertPoundToNZD()
         {
             IWebElement westpacFrame;
@@ -108,16 +121,18 @@ namespace WestPacForeignExchange
             westpacFrame = driver.FindElement(By.Id("westpac-iframe"));
             //switch to the westpac-iframe
             driver.SwitchTo().Frame(westpacFrame);
-            driver.FindElement(By.Id("ConvertFrom"))
-                  .FindElement(By.XPath("//select[1]/option[3]")).Click();
-            driver.FindElement(By.Id("ConvertTo"))
-                              .FindElement(By.XPath("//select[2]/option[1]")).Click();
-            driver.FindElement(By.Name("Amount")).SendKeys("1");
+            if (IsElementFound(By.Id("ConvertFrom"), out IWebElement ConvertFromDropDown))
+                ConvertFromDropDown.FindElement(By.XPath("//select[1]/option[3]")).Click();
+            if (IsElementFound(By.Id("ConvertTo"), out IWebElement ConvertToDropDown))
+                ConvertToDropDown.FindElement(By.XPath("//select[2]/option[1]")).Click();
+            if (IsElementFound(By.Id("Amount"), out IWebElement AmountInput))
+                AmountInput.SendKeys("1");
             if (IsElementFound(By.Id("convert"), out IWebElement ConvertButton))
             {
                 ConvertButton.Click();
-                String ActualText = driver.FindElement(By.Id("resultsdiv")).Text;
-                TestContext.WriteLine("ActualText is " + ActualText);
+                String ActualText = "";
+                if (IsElementFound(By.Id("resultsdiv"), out IWebElement ResultText))
+                    ActualText = ResultText.Text;
                 String FailedMessage = "failed to convert Pound Sterling to NZD";
                 Assert.IsTrue(ActualText.Contains("1 Pound Sterling"), FailedMessage);
                 Assert.IsTrue(ActualText.Contains("New Zealand Dollar"), FailedMessage);
@@ -127,7 +142,7 @@ namespace WestPacForeignExchange
         }
 
         [Test]
-        // User is able to convert 1 Swiss Franc to EURO successfully 
+        // User is able to convert 1 Swiss Franc to EURO successfully
         public void Story2ConvertSwissFrancToEuro()
         {
             IWebElement westpacFrame;
@@ -136,21 +151,23 @@ namespace WestPacForeignExchange
             westpacFrame = driver.FindElement(By.Id("westpac-iframe"));
             //switch to the westpac-iframe
             driver.SwitchTo().Frame(westpacFrame);
-            driver.FindElement(By.Id("ConvertFrom"))
-                  .FindElement(By.XPath("//select[1]/option[9]")).Click();
-            driver.FindElement(By.Id("ConvertTo"))
-                              .FindElement(By.XPath("//select[2]/option[5]")).Click();
-            driver.FindElement(By.Name("Amount")).SendKeys("1");
+            if (IsElementFound(By.Id("ConvertFrom"), out IWebElement ConvertFromDropDown))
+                ConvertFromDropDown.FindElement(By.XPath("//select[1]/option[9]")).Click();
+            if (IsElementFound(By.Id("ConvertTo"), out IWebElement ConvertToDropDown))
+                ConvertToDropDown.FindElement(By.XPath("//select[2]/option[5]")).Click();
+            if (IsElementFound(By.Id("Amount"), out IWebElement AmountInput))
+                AmountInput.SendKeys("1");
             if (IsElementFound(By.Id("convert"), out IWebElement ConvertButton))
             {
                 ConvertButton.Click();
-                String ActualText = driver.FindElement(By.Id("resultsdiv")).Text;
-                TestContext.WriteLine("ActualText is " + ActualText);
+                String ActualText = "";
+                if (IsElementFound(By.Id("resultsdiv"), out IWebElement ResultText))
+                    ActualText = ResultText.Text;
                 String FailedMessage = "failed to convert Swiss Franc to Euro";
                 Assert.IsTrue(ActualText.Contains("1 Swiss Franc"), FailedMessage);
                 Assert.IsTrue(ActualText.Contains("Euro"), FailedMessage);
                 Assert.IsTrue(ActualText.Contains("Would you like to make another calculation"), FailedMessage);
-            
+
             }
         }
 
@@ -164,17 +181,15 @@ namespace WestPacForeignExchange
         public void NavigateToCurrencyConverter()
         {
             IWebElement element;
-            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(80));
 
             element = wait.Until(SeleniumExtras.WaitHelpers
-                      .ExpectedConditions.ElementIsVisible
-                      (By.Id("ubermenu-section-link-fx-travel-and-migrant-ps")));
+                      .ExpectedConditions.ElementIsVisible(By.Id("ubermenu-section-link-fx-travel-and-migrant-ps")));
             Actions action = new Actions(driver);
             //Move to the Fx, travel & migrant menu
             action.MoveToElement(element).Perform();
             element = wait.Until(SeleniumExtras.WaitHelpers
-                      .ExpectedConditions.ElementIsVisible
-                      (By.Id("ubermenu-item-cta-currency-converter-ps")));
+                      .ExpectedConditions.ElementIsVisible(By.Id("ubermenu-item-cta-currency-converter-ps")));
             //Find and click the Curency converter button
             if (IsElementFound(By.Id("ubermenu-item-cta-currency-converter-ps"), out element))
                 element.Click();
@@ -182,23 +197,30 @@ namespace WestPacForeignExchange
             element = wait.Until(SeleniumExtras.WaitHelpers
                       .ExpectedConditions.ElementIsVisible
                       (By.Id("westpac-iframe")));
+
         }
 
 
         // search for element in the page, return true if found
         // failed the test if not found and print the element to test output
-        public bool IsElementFound (By by, out IWebElement outElement){
+        public bool IsElementFound(By by, out IWebElement outElement)
+        {
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
             try
             {
-                outElement = driver.FindElement(by); 
+                outElement = wait.Until(SeleniumExtras.WaitHelpers
+                  .ExpectedConditions.ElementIsVisible
+                  (by));
             }
-            catch (NoSuchElementException) {
-                TestContext.WriteLine(by.ToString() +" element not found");
+            catch (NoSuchElementException)
+            {
+                TestContext.WriteLine(by.ToString() + " element not found");
                 outElement = null;
                 Assert.Fail(by.ToString() + " element not found");
             }
             return true;
-        } 
+        }
 
     }
 }
+
